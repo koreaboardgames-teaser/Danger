@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡️찌리릿⚡️</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px 0;
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        .stage {
+            width: 780px;
+            min-height: 700px;
+            background-image: linear-gradient(rgba(0, 20, 40, 0.7), rgba(0, 20, 40, 0.7)), url('bg.jpg');
+            background-size: cover, 500px auto;
+            background-repeat: no-repeat, repeat;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .header { margin-top: 40px; text-align: center; z-index: 10; }
+        .score-label { font-size: 18px; font-weight: 800; color: #FFD54F; letter-spacing: 3px; margin-bottom: 10px; }
+        .score-window {
+            height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        .score-img {
+            height: 100%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .score-center { top: 0; }
+        .score-up { top: -100px; }
+        .score-down { top: 100px; }
+
+        .field {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            min-height: 300px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card {
+            width: 180px;
+            height: 260px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            transition: transform 0.4s ease, opacity 0.6s ease, filter 0.6s ease, box-shadow 0.2s ease;
+            position: relative; /* z-index 적용을 위해 */
+            z-index: 10;
+        }
+
+        #shock-logo {
+            position: absolute;
+            width: 400px;
+            height: 160px;
+            background-image: url('logo_kr.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 100;
+            filter: drop-shadow(0 0 30px rgba(255, 235, 59, 0.9));
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.8);
+            pointer-events: none;
+        }
+
+        /* [새로 추가] 카드 사이의 전기 연결 선 */
+        #shock-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px; /* 카드 사이 간격보다 약간 넓게 */
+            height: 6px; /* 선 두께 */
+            background: #FFF59D; /* 밝은 노란색 코어 */
+            /* 강렬한 전기 발광 효과 */
+            box-shadow: 
+                0 0 10px #FFEB3B,
+                0 0 20px #FBC02D,
+                0 0 40px #FF5722;
+            transform: translate(-50%, -50%) scaleX(0); /* 처음엔 안 보임 */
+            opacity: 0;
+            z-index: 90; /* 카드 위, 로고 아래 */
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+        }
+
+        /* 전기 선 활성화 상태 */
+        #shock-line.active {
+            transform: translate(-50%, -50%) scaleX(1.8); /* 양 옆으로 쭉 늘어남 */
+            opacity: 1;
+            animation: flicker 0.05s infinite alternate; /* 미세하게 떨리는 효과 */
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; } 100% { opacity: 0.8; }
+        }
+
+        .bottom-ui {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px 20px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+        .instruction { color: white; font-weight: 800; font-size: 22px; margin-bottom: 30px; }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 180px;
+            gap: 30px;
+        }
+
+        #start-group, #choice-group {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .card-btn {
+            width: 120px;
+            height: 170px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+            border: 3px solid transparent;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .card-btn:hover { transform: translateY(-10px); border-color: #FFD54F; }
+        .card-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+        .selected-faded {
+            filter: blur(5px) grayscale(0.8);
+            opacity: 0.4;
+            transform: scale(0.95);
+            pointer-events: none;
+            border: none;
+        }
+
+        .reset-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.5);
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .reset-link:hover { color: #FFD54F; }
+
+        .hidden { display: none !important; }
+        .shake-active { animation: shake-ani 0.08s infinite; }
+        .burnt-effect { filter: grayscale(0.5) brightness(0.6) !important; opacity: 0.35 !important; transform: scale(0.95); }
+
+        .connecting-glow {
+            box-shadow: 0 0 50px 20px rgba(255, 235, 59, 0.8) !important;
+        }
+
+        @keyframes shake-ani {
+            0% { transform: translate(-5px, 5px); }
+            50% { transform: translate(5px, -5px); }
+            100% { transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+    <div class="header">
+        <div class="score-label">현재 점수</div>
+        <div class="score-window" id="score-container">
+            <img src="score 0.png" class="score-img score-center" id="current-score-img">
+        </div>
+    </div>
+
+    <div class="field" id="card-field">
+        <div id="shock-line"></div>
+        <div id="shock-logo"></div>
+    </div>
+
+    <div class="bottom-ui">
+        <div class="instruction" id="instruction-text">카드를 내려놓아 주세요</div>
+        
+        <div class="btn-container">
+            <div id="start-group">
+                <div class="card-btn" onclick="startGame(this)">
+                    <img src="18.jpg">
+                </div>
+            </div>
+            
+            <div id="choice-group" class="hidden">
+                <div class="card-btn" onclick="play(15, this)"><img src="15.jpg"></div>
+                <div class="card-btn" onclick="play(17, this)"><img src="17.jpg"></div>
+            </div>
+        </div>
+
+        <div class="reset-link" onclick="location.reload()">다시 도전하기 ↺</div>
+    </div>
+</div>
+
+<script>
+    let gameState = 'init';
+    let card18Element = null;
+
+    const field = document.getElementById('card-field');
+    const scoreContainer = document.getElementById('score-container');
+    const currentScoreImg = document.getElementById('current-score-img');
+    const shockLogo = document.getElementById('shock-logo');
+    // 전기 선 요소 가져오기
+    const shockLine = document.getElementById('shock-line');
+    const stage = document.getElementById('stage');
+    const instructionText = document.getElementById('instruction-text');
+    const startGroup = document.getElementById('start-group');
+    const choiceGroup = document.getElementById('choice-group');
+
+    function startGame(clickedBtn) {
+        if (gameState !== 'init') return;
+        gameState = 'started';
+
+        clickedBtn.classList.add('selected-faded');
+
+        card18Element = document.createElement('div');
+        card18Element.className = 'card';
+        card18Element.style.backgroundImage = "url('18.jpg')";
+        card18Element.style.transform = 'translateY(300px)';
+        card18Element.style.opacity = '0';
+        // 18번 카드를 shock-line 뒤에 추가 (z-index로 제어되지만 안전하게)
+        field.insertBefore(card18Element, shockLine.nextSibling);
+
+        setTimeout(() => {
+            card18Element.style.transform = 'translateY(0)';
+            card18Element.style.opacity = '1';
+            animateScoreChange('score 8.png');
+
+            setTimeout(() => {
+                startGroup.classList.add('hidden');
+                choiceGroup.classList.remove('hidden');
+                instructionText.innerText = "어떤 카드를 내려놓을까요?";
+            }, 600);
+
+        }, 100);
+    }
+
+    function play(num, clickedBtn) {
+        if (gameState !== 'started') return;
+        gameState = 'ended';
+
+        clickedBtn.classList.add('selected-faded');
+
+        const newCard = document.createElement('div');
+        newCard.className = 'card';
+        newCard.style.backgroundImage = `url('${num}.jpg')`;
+        newCard.style.transform = 'translateY(300px)';
+        newCard.style.opacity = '0';
+        // 새 카드를 shock-line 앞에 추가 (18번 카드 왼쪽)
+        field.insertBefore(newCard, shockLine);
+
+        setTimeout(() => {
+            newCard.style.transform = 'translateY(0)';
+            newCard.style.opacity = '1';
+        }, 50);
+
+        // 결과 연출
+        setTimeout(() => {
+            if(num === 17) {
+                // --- 감전 (17번) ---
+                stage.classList.add('shake-active');
+                shockLogo.style.transform = 'translate(-50%, -50%) scale(1.5)';
+
+                // [추가] 전기 연결 선 활성화
+                shockLine.classList.add('active');
+
+                newCard.classList.add('connecting-glow');
+                card18Element.classList.add('connecting-glow');
+                
+                setTimeout(() => {
+                    newCard.classList.add('burnt-effect');
+                    card18Element.classList.add('burnt-effect');
+                    
+                    newCard.classList.remove('connecting-glow');
+                    card18Element.classList.remove('connecting-glow');
+                    // [추가] 전기 연결 선 비활성화
+                    shockLine.classList.remove('active');
+
+                    animateScoreChange('score 0.png');
+                    setTimeout(() => stage.classList.remove('shake-active'), 500);
+                }, 250);
+            } else {
+                // --- 성공 (15번) ---
+                animateScoreChange('score 5.png');
+            }
+        }, 450);
+    }
+
+    function animateScoreChange(newScoreSrc) {
+        const oldScore = scoreContainer.querySelector('.score-center');
+        const newScore = document.createElement('img');
+        newScore.src = newScoreSrc;
+        newScore.className = 'score-img score-up';
+        scoreContainer.appendChild(newScore);
+
+        setTimeout(() => {
+            if(oldScore) {
+                oldScore.classList.remove('score-center');
+                oldScore.classList.add('score-down');
+            }
+            newScore.classList.remove('score-up');
+            newScore.classList.add('score-center');
+            
+            setTimeout(() => {
+                if(oldScore && oldScore.parentNode) scoreContainer.removeChild(oldScore);
+            }, 600);
+        }, 50);
+    }
+</script>
+
+</body>
+</html>
