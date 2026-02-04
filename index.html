@@ -1,133 +1,46 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡️찌리릿⚡️</title>
-    <style>
-        /* 제이드의 원본 디자인 100% 유지 */
-        body { margin: 0; padding: 20px 0; display: flex; justify-content: center; background-color: #fff; font-family: 'Pretendard', sans-serif; }
-        .stage { width: 780px; min-height: 700px; background-image: linear-gradient(rgba(0, 20, 40, 0.7), rgba(0, 20, 40, 0.7)), url('bg.jpg'); background-size: cover, 500px auto; background-repeat: no-repeat, repeat; border-radius: 20px; position: relative; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .header { margin-top: 40px; text-align: center; z-index: 10; }
-        .score-label { font-size: 18px; font-weight: 800; color: #FFD54F; letter-spacing: 3px; margin-bottom: 10px; }
-        .score-window { height: 100px; position: relative; overflow: hidden; }
-        .score-img { height: 100%; position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .score-center { top: 0; }
-        .score-up { top: -100px; }
-        .score-down { top: 100px; }
-        .field { flex: 1; display: flex; justify-content: center; align-items: center; gap: 30px; min-height: 300px; position: relative; z-index: 5; }
-        .card { width: 180px; height: 260px; background-size: cover; background-position: center; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); transition: 0.4s; position: relative; z-index: 10; }
-        #shock-logo { position: absolute; width: 400px; height: 160px; background-image: url('logo_kr.png'); background-size: contain; background-repeat: no-repeat; background-position: center; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; filter: drop-shadow(0 0 30px rgba(255, 235, 59, 0.9)); transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.8); pointer-events: none; }
-        #shock-line { position: absolute; top: 50%; left: 50%; width: 50px; height: 6px; background: #FFF59D; box-shadow: 0 0 10px #FFEB3B, 0 0 20px #FBC02D, 0 0 40px #FF5722; transform: translate(-50%, -50%) scaleX(0); opacity: 0; z-index: 90; transition: transform 0.1s ease-out, opacity 0.1s ease-out; pointer-events: none; }
-        #shock-line.active { transform: translate(-50%, -50%) scaleX(1.8); opacity: 1; animation: flicker 0.05s infinite alternate; }
-        .bottom-ui { background: rgba(0, 0, 0, 0.5); padding: 30px 20px 40px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 10; }
-        .instruction { color: white; font-weight: 800; font-size: 22px; margin-bottom: 30px; }
-        .btn-container { display: flex; justify-content: center; align-items: center; min-height: 180px; gap: 30px; }
-        .card-btn { width: 120px; height: 170px; cursor: pointer; border-radius: 12px; transition: 0.3s; border: 3px solid transparent; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        .card-btn:hover { transform: translateY(-10px); border-color: #FFD54F; }
-        .card-btn img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; } /* 이미지가 클릭 방해 안 하게 수정 */
-        .selected-faded { filter: blur(5px) grayscale(0.8); opacity: 0.4; pointer-events: none; }
-        .hidden { display: none !important; }
-        .shake-active { animation: shake-ani 0.08s infinite; }
-        @keyframes shake-ani { 0% { transform: translate(-5px, 5px); } 50% { transform: translate(5px, -5px); } 100% { transform: translate(0, 0); } }
-        .reset-link { display: inline-block; margin-top: 30px; color: rgba(255,255,255,0.5); font-size: 15px; cursor: pointer; font-weight: bold; text-decoration: underline; }
-    </style>
-</head>
-<body>
-<div class="stage" id="stage">
-    <div class="header">
-        <div class="score-label">현재 점수</div>
-        <div class="score-window" id="score-container">
-            <img src="score 0.png" class="score-img score-center">
-        </div>
+<div id="danger-teaser" style="width: 100%; max-width: 500px; margin: 0 auto; background: #001428; border-radius: 15px; overflow: hidden; font-family: sans-serif; cursor: pointer;">
+    
+    <div id="main-view" style="position: relative; width: 100%; aspect-ratio: 3/4; background-image: url('https://koreaboardgames-teaser.github.io/Danger/bg.jpg'); background-size: cover;">
+        <img id="score-img" src="https://koreaboardgames-teaser.github.io/Danger/score%200.png" style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 80px;">
+        
+        <img id="center-card" src="https://koreaboardgames-teaser.github.io/Danger/18.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+        
+        <div id="zap-effect" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: yellow; font-size: 60px; font-weight: bold; text-shadow: 0 0 20px red; z-index: 100;">⚡ZAP!⚡</div>
     </div>
-    <div class="field" id="card-field">
-        <div id="shock-line"></div>
-        <div id="shock-logo"></div>
-    </div>
-    <div class="bottom-ui">
-        <div class="instruction" id="instruction-text">카드를 내려놓아 주세요</div>
-        <div class="btn-container">
-            <div id="start-group">
-                <div class="card-btn" id="btn-18"><img src="18.jpg"></div>
-            </div>
-            <div id="choice-group" class="hidden">
-                <div class="card-btn" id="btn-15"><img src="15.jpg"></div>
-                <div class="card-btn" id="btn-17"><img src="17.jpg"></div>
-            </div>
+
+    <div id="ui-area" style="padding: 20px; text-align: center; background: rgba(0,0,0,0.8);">
+        <p id="msg" style="color: white; margin-bottom: 15px; font-weight: bold;">카드를 선택해 보세요!</p>
+        <div id="btn-wrap" style="display: flex; justify-content: center; gap: 10px;">
+            <img onclick="playZap(15)" src="https://koreaboardgames-teaser.github.io/Danger/15.jpg" style="width: 70px; border-radius: 5px; border: 2px solid #FFD54F;">
+            <img onclick="playZap(17)" src="https://koreaboardgames-teaser.github.io/Danger/17.jpg" style="width: 70px; border-radius: 5px; border: 2px solid #FFD54F;">
         </div>
-        <div class="reset-link" onclick="location.reload()">다시 도전하기 ↺</div>
+        <div onclick="location.reload()" style="margin-top: 15px; color: #888; font-size: 12px; text-decoration: underline;">다시 하기 ↺</div>
     </div>
 </div>
 
 <script>
-    /* [핵심] 쇼핑몰 보안을 뚫는 강력한 이벤트 리스너 방식 */
-    let gameState = 'init';
-    let card18Element = null;
+function playZap(num) {
+    const card = document.getElementById('center-card');
+    const score = document.getElementById('score-img');
+    const msg = document.getElementById('msg');
+    const zap = document.getElementById('zap-effect');
 
-    window.onload = function() {
-        // 1. 첫 번째 카드(18번) 클릭 연결
-        document.getElementById('btn-18').addEventListener('click', function() {
-            if (gameState !== 'init') return;
-            gameState = 'started';
-            this.classList.add('selected-faded');
-            
-            card18Element = document.createElement('div');
-            card18Element.className = 'card';
-            card18Element.style.backgroundImage = "url('18.jpg')";
-            document.getElementById('card-field').appendChild(card18Element);
-            
-            animateScoreChange('score 8.png');
-            document.getElementById('start-group').classList.add('hidden');
-            document.getElementById('choice-group').classList.remove('hidden');
-            document.getElementById('instruction-text').innerText = "어떤 카드를 내려놓을까요?";
-        });
-
-        // 2. 15번 카드 클릭 연결
-        document.getElementById('btn-15').addEventListener('click', function() {
-            playGame(15, this);
-        });
-
-        // 3. 17번 카드 클릭 연결
-        document.getElementById('btn-17').addEventListener('click', function() {
-            playGame(17, this);
-        });
-    };
-
-    function playGame(num, btn) {
-        if (gameState !== 'started') return;
-        gameState = 'ended';
-        btn.classList.add('selected-faded');
-
-        const newCard = document.createElement('div');
-        newCard.className = 'card';
-        newCard.style.backgroundImage = `url('${num}.jpg')`;
-        document.getElementById('card-field').prepend(newCard);
-
-        setTimeout(() => {
-            if(num === 17) {
-                document.getElementById('stage').classList.add('shake-active');
-                document.getElementById('shock-logo').style.transform = 'translate(-50%, -50%) scale(1.5)';
-                document.getElementById('shock-line').classList.add('active');
-                animateScoreChange('score 0.png');
-            } else {
-                animateScoreChange('score 5.png');
-            }
-        }, 500);
+    // 카드 교체
+    card.src = 'https://koreaboardgames-teaser.github.io/Danger/' + num + '.jpg';
+    
+    if(num === 17) {
+        // 감전 연출
+        zap.style.display = 'block';
+        msg.innerText = "으악! 감전되었습니다! ⚡";
+        msg.style.color = "#FF5252";
+        score.src = 'https://koreaboardgames-teaser.github.io/Danger/score%200.png';
+        // 화면 흔들기 효과 대신 간단한 알림
+    } else {
+        // 성공 연출
+        zap.style.display = 'none';
+        msg.innerText = "휴~ 안전합니다! 5점 획득! 🛡️";
+        msg.style.color = "#4CAF50";
+        score.src = 'https://koreaboardgames-teaser.github.io/Danger/score%205.png';
     }
-
-    function animateScoreChange(newScoreSrc) {
-        const container = document.getElementById('score-container');
-        const oldScore = container.querySelector('.score-center');
-        const newScore = document.createElement('img');
-        newScore.src = newScoreSrc;
-        newScore.className = 'score-img score-up';
-        container.appendChild(newScore);
-        setTimeout(() => {
-            if(oldScore) oldScore.className = 'score-img score-down';
-            newScore.className = 'score-img score-center';
-        }, 50);
-    }
+}
 </script>
-</body>
-</html>
